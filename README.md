@@ -12,4 +12,4 @@ Control-Panel :passport_control:  Centro de controle mazonOS
 * cp -v controlpanel.png /usr/share/icons/mazon/
 
 **Se caso é o primeiro uso para testes utilize o changelog mais recente, após isso o mesmo começa a contar a partir deste momento**<br>
-{cd /var/lib/controlpanel/; wget http://mazonos.com/changelog.txt ;}
+* {cd /var/lib/controlpanel/; wget http://mazonos.com/changelog.txt ;}
