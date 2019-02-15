@@ -6,6 +6,10 @@ Control-Panel :passport_control:  Centro de controle mazonOS
 * Bash
 * Fcron
 
+## ScreenShot<br>
+![alt Run on mazonOS](https://raw.githubusercontent.com/slackjeff/controlpanel/master/screen.png)
+
+
 ## Instalação Manual
 **Criação de diretórios especiais**<br>
 * mkdir -v /etc/controlpanel/<br>
