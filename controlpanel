@@ -16,12 +16,16 @@
 # MIT
 #
 #CHANGELOG
+# Versão 0.2 - Jefferson Rocha
+#  -[BUGFIX] Exclude cancel button on dialog.
 #========================================================================|
 
 #######################################
 #===================== VARIAVEIS
 #######################################
-VERSION='0.1'
+PRG='Control Panel'
+
+VERSION='0.2'
 # USUARIO
 MAINUSER="$(grep "\b1000\b" /etc/passwd | sed 's|:.*$||g')"
 
@@ -42,7 +46,6 @@ export DIALOGRC="$CONF_DIALOG"
 #===================== BIBLIOTECA
 #######################################
 source "${CONF}"
-source "${CONF_DIALOG}"
 
 #######################################
 #===================== TESTE
@@ -62,6 +65,7 @@ done
 #######################################
 #===================== FUNÇÕES
 #######################################
+
 _CHECK_CHANGELOG() {
     export DISPLAY=:0
     local changelogtemp='/tmp/changelog_tmp'
@@ -81,14 +85,12 @@ while [[ -n "$1" ]]; do
   case $1 in
      menu) # Menu Principal para hablitar e desabiliar as funcionalidades
        shift
-       MSG="
-       [ ] = Desativado
-       [*] = Ativado
-       " # MENSAGEM DO DIALOG
-       RETURN=$(dialog --stdout --separate-output                                                     \
+       # MENSAGEM DO DIALOG
+       MSG="Welcome to ${PRG}\nhere manager programs utilities for mazonOS." 
+       RETURN=$(dialog --stdout --separate-output --no-cancel                                         \
        --backtitle "ControlPanel $VERSION" --title "Menu"                                             \
-       --checklist "$MSG" 0 0 0                                                                       \
-       "CHECK_CHANGELOG" "Habilita o check-changelog e exibe aviso no desktop" "$CHECK_CHANGELOG"     \
+       --checklist "$MSG" 20 80 0                                                                     \
+       "CHECK_CHANGELOG" "" "$CHECK_CHANGELOG"                                                        \
        )
        # FIXME Precisa melhorar este bloco que não está muito rápido.
        # Antes de tudo vamos ver o que NÃO está selecionado.
