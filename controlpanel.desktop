@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Control Panel
+GenericName[pt_BR]=Painel de Controle
+Comment=Control Painel mazonOS
+Comment[pt_BR]=Painel de Controle mazonOS
+Icon=/usr/share/icons/mazon/controlpanel.png
+Exec=pkexec controlpanel menu
+Terminal=true
+Categories=System;ConsoleOnly;
+Keywords=system;control
