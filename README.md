@@ -1,6 +1,11 @@
 # controlpanel
 Control-Panel :passport_control:  Centro de controle mazonOS
 
+## DEPENDÊNCIAS
+* Dialog
+* Bash
+* Fcron
+
 ## Instalação Manual
 **Criação de diretórios especiais**<br>
 * mkdir -v /etc/controlpanel/<br>
