@@ -1,0 +1,121 @@
+#!/bin/bash
+#=================HEADER==================================================|
+#CRIAÇÃO 15/02/2019
+#
+#AUTOR
+# Jefferson 'Slackjeff' Rocha
+#
+#DESCRIÇÃO
+# Controlpanel é um software que gerencia vários softwares, usado para
+# habilitar e desabilitar. Criado especialmente para mazonOS
+#
+# TEMPO IDEAL PARA ADICIONAR NO CRON, verificar de 3 em 3 horas.
+# 00 06,09,12,15,18,21,00 * * * /usr/bin/controlpanel -g
+#
+#LICENÇA
+# MIT
+#
+#CHANGELOG
+#========================================================================|
+
+#######################################
+#===================== VARIAVEIS
+#######################################
+VERSION='0.1'
+# USUARIO
+MAINUSER="$(grep "\b1000\b" /etc/passwd | sed 's|:.*$||g')"
+
+# Arquivo de configuração
+CONF='/etc/controlpanel/controlpanel.conf'
+CONF_DIALOG='/etc/controlpanel/controlpanel.dialog'
+
+# Link do changelog da mazonOS
+LINK_CHANGELOG='http://mazonos.com/changelog.txt'
+
+# Diretorios importantes
+DIR_CHANGE='/var/lib/controlpanel'
+
+# Chamando cores do dialog
+export DIALOGRC="$CONF_DIALOG"
+
+#######################################
+#===================== BIBLIOTECA
+#######################################
+source "${CONF}"
+source "${CONF_DIALOG}"
+
+#######################################
+#===================== TESTE
+#######################################
+# Root?
+[[ "$UID" -ne "0" ]] && { echo "Need root"; exit 1 ;}
+
+# Verificando se variáveis não estão nulas ou se contem alpha
+for check in 'CHECK_CHANGELOG' ; do
+    if [[ -z "${!check}" ]] || [[ "${!check}" =~ [[:alpha:]] ]]; then
+        eval $check="0"
+    fi
+    # Fazendo conversão númerica para alpha
+    [[ "${!check}" -eq '0' ]] && eval $check="off" || eval $check="on"
+done
+
+#######################################
+#===================== FUNÇÕES
+#######################################
+_CHECK_CHANGELOG() {
+    export DISPLAY=:0
+    local changelogtemp='/tmp/changelog_tmp'
+    local changelogmachine="${DIR_CHANGE}/changelog.txt"
+
+    wget -q "$LINK_CHANGELOG" -O "$changelogtemp" || exit 1
+    if ! diff -q "$changelogmachine" "$changelogtemp" &> /dev/null; then
+        mv "$changelogtemp" "$DIR_CHANGE/changelog.txt" &>/dev/null
+        su "$MAINUSER" -c "/usr/bin/notify-send -i text 'Changelog Upgrade!' 'Check on mazonos.com/changelog'"
+    fi
+}
+#######################################
+#===================== PRINCIPAL
+#######################################
+# LANÇAR CHAMADA EM LINHA
+while [[ -n "$1" ]]; do
+  case $1 in
+     menu) # Menu Principal para hablitar e desabiliar as funcionalidades
+       shift
+       MSG="
+       [ ] = Desativado
+       [*] = Ativado
+       " # MENSAGEM DO DIALOG
+       RETURN=$(dialog --stdout --separate-output                                                     \
+       --backtitle "ControlPanel $VERSION" --title "Menu"                                             \
+       --checklist "$MSG" 0 0 0                                                                       \
+       "CHECK_CHANGELOG" "Habilita o check-changelog e exibe aviso no desktop" "$CHECK_CHANGELOG"     \
+       )
+       # FIXME Precisa melhorar este bloco que não está muito rápido.
+       # Antes de tudo vamos ver o que NÃO está selecionado.
+       # Para tirar fora do arquivo de configuração.
+       for check in 'CHECK_CHANGELOG'; do
+           if ! echo "$RETURN" | grep -q "$check" &>/dev/null; then
+               sed -i "s|${check}=.*|${check}='0'|" "$CONF"
+               sed -i "/.*controlpanel[[:space:]]\+changelog/d" "/var/spool/fcron/root.orig"
+           fi
+       done
+       # Lançando o que o usuário escolheu.
+       while read LINE; do
+           case $LINE in
+               CHECK_CHANGELOG)
+                   sed -i "s|CHECK_CHANGELOG=.*|CHECK_CHANGELOG='1'|" "$CONF"       
+                   if ! grep -q ".*controlpanel[[:space:]]\+changelog" '/var/spool/fcron/root.orig'; then
+                       echo "00 */2 * * * /usr/bin/controlpanel changelog" >> '/var/spool/fcron/root.orig'
+                   fi
+               ;;
+           esac
+       done <<< "$RETURN"
+     ;; # menu
+
+     # Chamadas diretos em linha.
+     -c|changelog)
+        shift
+         _CHECK_CHANGELOG # função
+     ;;    
+  esac # case principal
+done
